@@ -29,6 +29,7 @@ class GpsConnectionFactory implements ConnectionFactory
      *   'projectId'   => The project ID from the Google Developer's Console.
      *   'keyFilePath' => The full path to your service account credentials.json file retrieved from the Google Developers Console.
      *   'retries'     => Number of retries for a failed request. **Defaults to** `3`.
+     *   'ackDeadlineSeconds' => Time in seconds that PubSubto will wait before retrying a message
      *   'scopes'      => Scopes to be used for the request.
      *   'emulatorHost' => The endpoint used to emulate communication with GooglePubSub.
      *   'lazy'        => 'the connection will be performed as later as possible, if the option set to true'
@@ -74,13 +75,17 @@ class GpsConnectionFactory implements ConnectionFactory
      */
     public function createContext(): Context
     {
+        $options = $this->config['ackDeadlineSeconds'] ?
+            ['ackDeadlineSeconds' => $this->config['ackDeadlineSeconds']] : []
+        ;
+
         if ($this->config['lazy']) {
             return new GpsContext(function () {
                 return $this->establishConnection();
-            });
+            }, $options);
         }
 
-        return new GpsContext($this->establishConnection());
+        return new GpsContext($this->establishConnection(), $options);
     }
 
     private function parseDsn(string $dsn): array
@@ -101,6 +106,7 @@ class GpsConnectionFactory implements ConnectionFactory
             'projectId' => $dsn->getString('projectId'),
             'keyFilePath' => $dsn->getString('keyFilePath'),
             'retries' => $dsn->getDecimal('retries'),
+            'ackDeadlineSeconds' => $dsn->getDecimal('ackDeadlineSeconds'),
             'scopes' => $dsn->getString('scopes'),
             'emulatorHost' => $emulatorHost,
             'hasEmulator' => $hasEmulator,
