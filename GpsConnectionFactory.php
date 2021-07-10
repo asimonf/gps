@@ -75,7 +75,7 @@ class GpsConnectionFactory implements ConnectionFactory
      */
     public function createContext(): Context
     {
-        $options = $this->config['ackDeadlineSeconds'] ?
+        $options = isset($this->config['ackDeadlineSeconds']) ?
             ['ackDeadlineSeconds' => $this->config['ackDeadlineSeconds']] : []
         ;
 
